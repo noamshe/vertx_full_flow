@@ -1,21 +1,5 @@
 package com.mycompany;
-/*
- * Copyright 2013 Red Hat, Inc.
- *
- * Red Hat licenses this file to you under the Apache License, version 2.0
- * (the "License"); you may not use this file except in compliance with the
- * License.  You may obtain a copy of the License at:
- *
- *    http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
- * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.  See the
- * License for the specific language governing permissions and limitations
- * under the License.
- *
- * @author <a href="http://tfox.org">Tim Fox</a>
- */
+
 
 import org.productivity.java.syslog4j.Syslog;
 import org.productivity.java.syslog4j.SyslogIF;
@@ -35,27 +19,22 @@ import org.vertx.java.platform.Verticle;
 
 import org.vertx.java.core.buffer.Buffer;
 
-
-import java.io.BufferedReader;
-import java.io.InputStreamReader;
-import java.io.PrintWriter;
-import java.net.Socket;
+import java.util.Date;
+import java.util.UUID;
 
 
-public class RouteMatchExample extends Verticle {
-   // private static final Logger m_logger = LoggerFactory.getLogger(RouteMatchExample.class);
+public class Bidder extends Verticle {
+
     private static final SyslogIF syslog = Syslog.getInstance("tcp");
-
-    String hostName = "10.0.1.170";
-    int portNumber = 51515;
-    Socket kkSocket = null;
-    PrintWriter out = null;
-
-    static {
-         // some syslog cloud services may use this field to transmit a secret key
+    private static final String NO_BID="{\n" +
+            "  \n" +
+            "  \"string\": \"no bid\"\n" +
+            "}";
+        static {
 
 
-        syslog.getConfig().setHost("10.0.1.170");
+
+        syslog.getConfig().setHost("10.0.2.35");
         syslog.getConfig().setPort(51515);
 
     }
@@ -64,24 +43,13 @@ public class RouteMatchExample extends Verticle {
 
     public void start() {
 
-
-
-
-      //  try {
-       //     Socket kkSocket = new Socket(hostName, portNumber, true);
-       //     out = new PrintWriter(kkSocket.getOutputStream());
-       //     BufferedReader in = new BufferedReader(
-       //             new InputStreamReader(kkSocket.getInputStream()));
-      //  } catch (Exception e) {
-      //      System.out.println("error 1: " + e.getMessage());
-      //  }
-
         HttpServer listen = vertx.createHttpServer().requestHandler(new Handler<HttpServerRequest>() {
+            private HttpServerRequest req;
+
             public void handle(HttpServerRequest req) {
                 parse(req);
-
-              //  req.response().putHeader("Content-Length",String.valueOf("hello noam"));
-                req.response().end("Hello World");
+                req.response().setStatusCode(202);
+                req.response().end(NO_BID);
             }
         }).listen(8081);
 
@@ -107,7 +75,7 @@ public class RouteMatchExample extends Verticle {
                         VTDNav vn = vg.getNav();
                         if (vn.matchElement("id")) {
 
-                          //  m_logger.debug(vn.toString(vn.getText()));
+
                         }
 
                     } catch (Exception e) {
@@ -116,16 +84,24 @@ public class RouteMatchExample extends Verticle {
                 }
                 if ("application/json".equals(contentType)) {
                     try {
+                        StringBuilder sb =new StringBuilder();
+                        String uuid = "\"uuid\":\""+ UUID.randomUUID().toString()+"\"";
+                        String date = "\"date\":\""+ new Date().toString()+"\"";
+                        sb.append("{").append(uuid).append(",").append(date).append(",").append(buffer.toString().substring(1));
+                        syslog.debug(sb.toString().replace("\n","") );
+                        /*
+
                         String s = buffer.toString();
                         Object obj = JSONValue.parse(s);
                         JSONObject jobj=(JSONObject)obj;
+                        jobj=(JSONObject)jobj.get("site");
+                        jobj=(JSONObject)jobj.get("publisher");
 
-                      // m_logger.debug(String.valueOf(jobj.get("id")));
-                       // out.write( String.valueOf(jobj.get("id"))+"\n");
-                        //out.flush();
+
+
 
                         syslog.debug(String.valueOf(jobj.get("id")));
-
+                        */
 
                     } catch (Exception e) {
                         System.out.println("exception occurred ==>" + e);
