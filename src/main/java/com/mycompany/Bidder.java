@@ -1,20 +1,23 @@
 package com.mycompany;
 
 
-import org.productivity.java.syslog4j.Syslog;
-import org.productivity.java.syslog4j.SyslogIF;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+//import org.apache.log4j.Logger;
+//import org.productivity.java.syslog4j.Syslog;
+//import org.productivity.java.syslog4j.SyslogConstants;
+//import org.productivity.java.syslog4j.SyslogIF;
 
 
 import com.ximpleware.VTDGen;
 import com.ximpleware.VTDNav;
 
+import org.vertx.java.core.AsyncResult;
+import org.vertx.java.core.AsyncResultHandler;
 import org.vertx.java.core.Handler;
 
 import org.vertx.java.core.http.*;
-
+import com.nesscomputing.syslog4j.*;
 import net.minidev.json.*;
+import org.vertx.java.core.net.NetSocket;
 import org.vertx.java.platform.Verticle;
 
 import org.vertx.java.core.buffer.Buffer;
@@ -25,20 +28,30 @@ import java.util.UUID;
 
 public class Bidder extends Verticle {
 
-    private static final SyslogIF syslog = Syslog.getInstance("tcp");
+
     private static final String NO_BID="{\n" +
             "  \n" +
             "  \"string\": \"no bid\"\n" +
             "}";
+   // private static Logger syslog = org.apache.log4j.Logger.getRootLogger();
+/*
+    private static final SyslogIF syslog = Syslog.getInstance("tcp");
         static {
 
 
 
-        syslog.getConfig().setHost("10.0.2.35");
+        syslog.getConfig().setHost("10.0.2.178");
         syslog.getConfig().setPort(51515);
+        syslog.getConfig().setSendLocalName(false);
+        syslog.getConfig().setSendLocalTimestamp(false);
+        syslog.getConfig().setMaxMessageLength(10000);
+        syslog.getConfig().setIncludeIdentInMessageModifier(false);
+        syslog.getConfig().setUseStructuredData(false);
+
 
     }
-
+*/
+   private static NetSocket socket =null;
 
 
     public void start() {
@@ -46,14 +59,25 @@ public class Bidder extends Verticle {
         HttpServer listen = vertx.createHttpServer().requestHandler(new Handler<HttpServerRequest>() {
             private HttpServerRequest req;
 
+
             public void handle(HttpServerRequest req) {
                 parse(req);
+                //req.response().putHeader("Content-Length","2048");
                 req.response().setStatusCode(202);
                 req.response().end(NO_BID);
             }
         }).listen(8081);
 
+        vertx.createNetClient().connect(51515, "10.0.2.178", new AsyncResultHandler<NetSocket>() {
+            public void handle(AsyncResult<NetSocket> asyncResult) {
 
+                    socket = asyncResult.result();
+                //socket.write("maybe");
+
+
+
+            }
+        });
 
 
     }
@@ -85,10 +109,12 @@ public class Bidder extends Verticle {
                 if ("application/json".equals(contentType)) {
                     try {
                         StringBuilder sb =new StringBuilder();
-                        String uuid = "\"uuid\":\""+ UUID.randomUUID().toString()+"\"";
-                        String date = "\"date\":\""+ new Date().toString()+"\"";
-                        sb.append("{").append(uuid).append(",").append(date).append(",").append(buffer.toString().substring(1));
-                        syslog.debug(sb.toString().replace("\n","") );
+                        String uuid = "{\"uuid\":\""+ UUID.randomUUID().toString()+"\"";
+                        String bidrequest= "\"bid_request\":";
+                        String date = "\"date\":\""+ new Date().toString()+"\"}";
+                        sb.append(uuid).append(",").append(bidrequest).append(buffer.toString()).append(",").append(date);
+                        socket.write(sb.toString().replace("\n", "")+"\n");
+
                         /*
 
                         String s = buffer.toString();
