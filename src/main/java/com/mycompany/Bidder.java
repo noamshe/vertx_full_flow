@@ -24,6 +24,7 @@ import org.vertx.java.core.buffer.Buffer;
 
 import java.util.Date;
 import java.util.UUID;
+import java.util.logging.Logger;
 
 
 public class Bidder extends Verticle {
@@ -55,6 +56,8 @@ public class Bidder extends Verticle {
 
 
     public void start() {
+     
+    int inComingPort= container.config().getInteger("port");
 
         HttpServer listen = vertx.createHttpServer().requestHandler(new Handler<HttpServerRequest>() {
             private HttpServerRequest req;
@@ -66,9 +69,10 @@ public class Bidder extends Verticle {
                 req.response().setStatusCode(202);
                 req.response().end(NO_BID);
             }
-        }).listen(8081);
-
-        vertx.createNetClient().connect(51515, "10.0.2.178", new AsyncResultHandler<NetSocket>() {
+        }).listen(inComingPort);
+        int flumePort= container.config().getInteger("flume_port");
+        String flumeHost=container.config().getString("flume_host");
+        vertx.createNetClient().connect(flumePort, flumeHost, new AsyncResultHandler<NetSocket>() {
             public void handle(AsyncResult<NetSocket> asyncResult) {
 
                     socket = asyncResult.result();
@@ -113,7 +117,7 @@ public class Bidder extends Verticle {
                         String bidrequest= "\"bid_request\":";
                         String date = "\"date\":\""+ new Date().toString()+"\"}";
                         sb.append(uuid).append(",").append(bidrequest).append(buffer.toString()).append(",").append(date);
-                        socket.write(sb.toString().replace("\n", "")+"\n");
+                        socket.write(sb.toString().replace("\n", "") + "\n");
 
                         /*
 
