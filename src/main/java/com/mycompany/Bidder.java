@@ -14,13 +14,16 @@ import org.vertx.java.core.AsyncResult;
 import org.vertx.java.core.AsyncResultHandler;
 import org.vertx.java.core.Handler;
 
+import org.vertx.java.core.VoidHandler;
 import org.vertx.java.core.http.*;
 import com.nesscomputing.syslog4j.*;
 import net.minidev.json.*;
+import org.vertx.java.core.net.NetClient;
 import org.vertx.java.core.net.NetSocket;
 import org.vertx.java.platform.Verticle;
 
 import org.vertx.java.core.buffer.Buffer;
+
 
 import java.util.Date;
 import java.util.UUID;
@@ -56,7 +59,7 @@ public class Bidder extends Verticle {
 
 
     public void start() {
-     
+
     int inComingPort= container.config().getInteger("port");
 
         HttpServer listen = vertx.createHttpServer().requestHandler(new Handler<HttpServerRequest>() {
@@ -72,12 +75,21 @@ public class Bidder extends Verticle {
         }).listen(inComingPort);
         int flumePort= container.config().getInteger("flume_port");
         String flumeHost=container.config().getString("flume_host");
-        vertx.createNetClient().connect(flumePort, flumeHost, new AsyncResultHandler<NetSocket>() {
+        NetClient client =vertx.createNetClient();
+        client.setReconnectAttempts(1000);
+
+        client.setReconnectInterval(500);
+        client.setSendBufferSize(4*1024);
+        client.connect(flumePort, flumeHost, new AsyncResultHandler<NetSocket>() {
             public void handle(AsyncResult<NetSocket> asyncResult) {
-
+                if (asyncResult.succeeded()) {
+                    container.logger().info("We have connected! Socket is " + asyncResult.result());
                     socket = asyncResult.result();
-                //socket.write("maybe");
+                } else {
+                    asyncResult.cause().printStackTrace();
+                }
 
+                //socket.write("maybe");
 
 
             }
@@ -112,12 +124,29 @@ public class Bidder extends Verticle {
                 }
                 if ("application/json".equals(contentType)) {
                     try {
-                        StringBuilder sb =new StringBuilder();
-                        String uuid = "{\"uuid\":\""+ UUID.randomUUID().toString()+"\"";
-                        String bidrequest= "\"bid_request\":";
-                        String date = "\"date\":\""+ new Date().toString()+"\"}";
-                        sb.append(uuid).append(",").append(bidrequest).append(buffer.toString()).append(",").append(date);
-                        socket.write(sb.toString().replace("\n", "") + "\n");
+
+                        if (!socket.writeQueueFull()) {
+                            StringBuilder sb =new StringBuilder();
+                            String uuid = "{\"uuid\":\""+ UUID.randomUUID().toString()+"\"";
+                            String bidrequest= "\"bid_request\":";
+                            String date = "\"date\":\""+ new Date().toString()+"\"}";
+                            sb.append(uuid).append(",").append(bidrequest).append(buffer.toString()).append(",").append(date);
+
+
+
+                            socket.write(sb.toString().replace("\n", "") + "\n");
+
+
+                        } else {
+                            socket.pause();
+                            socket.drainHandler(new VoidHandler() {
+                                public void handle() {
+                                    socket.resume();
+                                }
+                            });
+
+                        }
+
 
                         /*
 

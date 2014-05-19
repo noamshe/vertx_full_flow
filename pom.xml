@@ -38,7 +38,7 @@
 
     <!--Dependency versions-->
     <vertx.version>2.1RC3</vertx.version>
-    <vertx.testtools.version>2.0.3-final</vertx.testtools.version>
+    <vertx.testtools.version>LATEST</vertx.testtools.version>
     <junit.version>4.11</junit.version>
 
     <!--Plugin versions-->
@@ -197,6 +197,7 @@
            <!--configFile>/path/to/MyVerticle.conf</configFile-->
            <instances>20</instances>
             <configFile>src/main/resources/conf.json</configFile>
+
         </configuration>
 
         <!-- Make sure that the plugin uses the vert.x versions from this pom.xml not from its own pom.xml -->
