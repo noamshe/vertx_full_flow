@@ -1,5 +1,5 @@
 {
-    "flume_host": "10.0.2.182",
-    "flume_port":51515,
+    "flume_host": "10.0.2.178",
+    "flume_port":51514,
     "port": 8081
 }
