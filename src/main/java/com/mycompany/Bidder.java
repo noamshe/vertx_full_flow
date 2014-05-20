@@ -46,42 +46,20 @@ public class Bidder extends Verticle {
             "  \n" +
             "  \"string\": \"no bid\"\n" +
             "}";
-   // private static Logger syslog = org.apache.log4j.Logger.getRootLogger();
-    private static SyslogConfigIF conf1 =new TCPNetSyslogConfig() ;
-    private static SyslogConfigIF conf2 =new TCPNetSyslogConfig() ;
-    private static SyslogConfigIF conf3 =new TCPNetSyslogConfig() ;
 
 
-    private static SyslogIF[] syslogs =new SyslogIF[3];
+
+
+    private static SyslogIF syslog =Syslog.getInstance("tcp");
         static {
 
 
+            syslog.getConfig().setSendLocalName(false);
+            syslog.getConfig().setFacility(1);
+            syslog.getConfig().setSendLocalTimestamp(false);
 
 
-            conf1.setSendLocalName(false);
-            conf1.setFacility(1);
-            conf1.setSendLocalTimestamp(false);
-            conf1.setHost("10.67.144.188");
-            conf1.setPort(51515);
-
-
-            conf2.setSendLocalName(false);
-            conf2.setFacility(1);
-            conf2.setSendLocalTimestamp(false);
-            conf2.setHost("10.67.144.188");
-            conf2.setPort(51516);
-
-            conf3.setSendLocalName(false);
-            conf3.setFacility(1);
-            conf3.setSendLocalTimestamp(false);
-            conf3.setHost("10.67.144.188");
-            conf3.setPort(51517);
-
-            syslogs[0]=Syslog.createInstance( "tcp1",conf1);
-            syslogs[1]=Syslog.createInstance( "tcp2",conf2);
-            syslogs[2]=Syslog.createInstance( "tcp3",conf3);
-
-    }
+        }
 
 
 
@@ -90,7 +68,8 @@ public class Bidder extends Verticle {
     final int  inComingPort= container.config().getInteger("port");
      final int flumePort= container.config().getInteger("flume_port");
       final String flumeHost=container.config().getString("flume_host");
-        final Random rand =new Random();
+        syslog.getConfig().setHost(flumeHost);
+        syslog.getConfig().setPort(flumePort);
 
 
 
@@ -115,9 +94,9 @@ public class Bidder extends Verticle {
                         String bidrequest = "\"bid_request\":";
                         String date = "\"date\":\"" + new Date().toString() + "\"}";
                         sb.append(uuid).append(",").append(bidrequest).append(buffer.toString()).append(",").append(date);
-                        int logNum=rand.nextInt(3);
 
-                        syslogs[logNum].debug(sb.toString().replace("\n", ""));
+
+                        syslog.debug(sb.toString().replace("\n", ""));
 
                     }
 
