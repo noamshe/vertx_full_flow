@@ -90,10 +90,10 @@ public class Bidder extends Verticle {
                     public void handle(Buffer buffer) {
 
                         StringBuilder sb = new StringBuilder();
-                        String uuid = "{\"uuid\":\"" + UUID.randomUUID().toString() + "\"";
-                        String bidrequest = "\"bid_request\":";
-                        String date = "\"date\":\"" + new Date().toString() + "\"}";
-                        sb.append(uuid).append(",").append(bidrequest).append(buffer.toString()).append(",").append(date);
+                        StringBuilder uuid = new StringBuilder("{\"uuid\":\"").append( UUID.randomUUID().toString()).append("\"");
+                        StringBuilder bidRequest =  new StringBuilder("\"bid_request\":");
+                        StringBuilder date = new StringBuilder("\"date\":\"").append (new Date().toString()).append( "\"}");
+                        sb.append(uuid).append(",").append(bidRequest).append(buffer.toString()).append(",").append(date);
 
 
                         syslog.debug(sb.toString().replace("\n", ""));

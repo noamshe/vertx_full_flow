@@ -58,6 +58,12 @@
       <id>sonatype-nexus-snapshots</id>
       <url>https://oss.sonatype.org/content/repositories/snapshots</url>
     </repository>
+      <repository>
+          <id>brandix-artifactory</id>
+          <name>brandix-artifactory-releases</name>
+          <url>http://10.0.3.141:8081/artifactory/ext-release-local</url>
+      </repository>
+
 
         <repository>
             <id>oracleReleases</id>
@@ -175,10 +181,11 @@
             <version>2.0-RC3</version>
         </dependency>
         <dependency>
-            <groupId>org.syslog4j</groupId>
+            <groupId>syslog4j</groupId>
             <artifactId>syslog4j</artifactId>
-            <version>0.9.30</version>
+            <version>0.9.46</version>
         </dependency>
+
 
 
 
