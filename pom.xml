@@ -186,14 +186,15 @@
             <version>0.9.46</version>
         </dependency>
 
-
-
-
         <dependency>
-            <groupId>org.apache.flume.flume-ng-clients</groupId>
-            <artifactId>flume-ng-log4jappender</artifactId>
-            <version>1.4.0-cdh5.0.1</version>
+            <groupId>commons-configuration</groupId>
+            <artifactId>commons-configuration</artifactId>
+            <version>1.10</version>
+            <scope>compile</scope>
         </dependency>
+
+
+
 
 
 
@@ -232,7 +233,6 @@
             <artifactId>vertx-hazelcast</artifactId>
             <version>${vertx.version}</version>
           </dependency>
-
 
 
 

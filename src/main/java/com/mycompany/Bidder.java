@@ -49,15 +49,31 @@ public class Bidder extends Verticle {
 
 
 
+    private static final int NUM_OF_LOGGER_CONNECTION=Conf.getConfig().getInt("num_of_logger_connection");
+    private static final int SYSLOG_MESSAGE_LENGTH=Conf.getConfig().getInt("syslog_message_length");
+    private static final int SYSLOG_QUEUE_SIZE=Conf.getConfig().getInt("syslog_queue_size");
+    private static final int SYSLOG_LOOP_INTERVAL=Conf.getConfig().getInt("syslog_loop_interval");
 
-    private static SyslogIF syslog =Syslog.getInstance("tcp");
-        static {
+    private static final int LISTEN_PORT=Conf.getConfig().getInt("listen_port");
+    private static final int FLUME_PORT=Conf.getConfig().getInt("flume_port");
+    private static final String FLUME_HOST=Conf.getConfig().getString("flume_host");
 
 
-            syslog.getConfig().setSendLocalName(false);
-            syslog.getConfig().setFacility(1);
-            syslog.getConfig().setSendLocalTimestamp(false);
+    private static SyslogIF[] syslogs= new SyslogIF[NUM_OF_LOGGER_CONNECTION];
 
+    static {
+
+
+            for(int i=0;i<NUM_OF_LOGGER_CONNECTION; i++) {
+                TCPNetSyslogConfig conf =new TCPNetSyslogConfig();
+                conf.setMaxQueueSize(SYSLOG_QUEUE_SIZE);
+                conf.setMaxMessageLength(SYSLOG_MESSAGE_LENGTH);
+                conf.setThreadLoopInterval(SYSLOG_LOOP_INTERVAL);
+                conf.setHost(FLUME_HOST);
+                conf.setPort(FLUME_PORT);
+                syslogs[i]=Syslog.createInstance("tcp"+i,conf);
+
+            }
 
         }
 
@@ -65,18 +81,7 @@ public class Bidder extends Verticle {
 
     public void start() {
 
-    final int  inComingPort= container.config().getInteger("port");
-     final int flumePort= container.config().getInteger("flume_port");
-      final String flumeHost=container.config().getString("flume_host");
-        syslog.getConfig().setHost(flumeHost);
-        syslog.getConfig().setPort(flumePort);
-
-
-
-
-
-
-
+        final Random rand =new Random();
 
         HttpServer listen = vertx.createHttpServer().requestHandler(new Handler<HttpServerRequest>() {
             private HttpServerRequest req;
@@ -95,20 +100,19 @@ public class Bidder extends Verticle {
                         StringBuilder date = new StringBuilder("\"date\":\"").append (new Date().toString()).append( "\"}");
                         sb.append(uuid).append(",").append(bidRequest).append(buffer.toString()).append(",").append(date);
 
-
-                        syslog.debug(sb.toString().replace("\n", ""));
+                        syslogs[rand.nextInt(NUM_OF_LOGGER_CONNECTION)].debug(sb.toString().replace("\n", ""));
 
                     }
 
 
                 });
 
-                //req.response().putHeader("Content-Length","2048");
+
                 req.response().setStatusCode(202);
                 req.response().end(NO_BID);
 
             }
-        }).listen(inComingPort);
+        }).listen(LISTEN_PORT);
 
 
 
