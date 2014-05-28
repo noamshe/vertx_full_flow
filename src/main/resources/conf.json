@@ -1,5 +1,7 @@
 {
-    "flume_host": "10.0.2.178",
-    "flume_port":51514,
-    "port": 8081
+
+    "bidder_port": 8081,
+    "tracker_port":8082
+
+
 }

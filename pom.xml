@@ -3,11 +3,11 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
   <modelVersion>4.0.0</modelVersion>
 
-  <groupId>com.mycompany</groupId>
-  <artifactId>my-module</artifactId>
+  <groupId>com.matomy.rtb</groupId>
+  <artifactId>rtb</artifactId>
   <packaging>jar</packaging>
   <version>0.1</version>
-  <name>Project - my-module</name>
+  <name>RTB</name>
   <url>http://maven.apache.org</url>
 
   <parent>
@@ -17,6 +17,9 @@
   </parent>
 
   <properties>
+
+      <preassembly.dir>${basedir}/src/main/resources</preassembly.dir>
+
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
       <jackson.version>1.9.3</jackson.version>
       <flume.version>1.4.0</flume.version>
@@ -38,7 +41,7 @@
 
     <!--Dependency versions-->
     <vertx.version>2.1RC3</vertx.version>
-    <vertx.testtools.version>LATEST</vertx.testtools.version>
+    <vertx.testtools.version>2.0.1-final</vertx.testtools.version>
     <junit.version>4.11</junit.version>
 
     <!--Plugin versions-->
@@ -200,8 +203,128 @@
 
     </dependencies>
 
+
+    <profiles>
+    <profile>
+        <id>dev</id>
+        <activation>
+            <activeByDefault>true</activeByDefault>
+        </activation>
+        <properties>
+            <config.location>${basedir}/src/main/config/dev/syslog_conf.properties</config.location>
+            <log.location>${basedir}/src/main/config/dev/log4j.properties</log.location>
+            <db.url>jdbc:mysql://localhost/engine</db.url>
+            <db.user>mobit</db.user>
+            <db.pass>123123</db.pass>
+        </properties>
+    </profile>
+
+    <!-- QA profile -->
+
+    <profile>
+        <id>qa</id>
+        <properties>
+            <config.location>${basedir}/src/main/config/qa/syslog_conf.properties</config.location>
+            <log.location>${basedir}/src/main/config//qa/log4j.properties</log.location>
+            <db.url>jdbc:mysql://10.0.1.255/engine</db.url>
+            <db.user>mobit</db.user>
+            <db.pass>123123</db.pass>
+
+        </properties>
+
+    </profile>
+
+    <profile>
+        <id>qa2</id>
+        <properties>
+            <config.location>${basedir}/src/main/config/qa/syslog_conf.properties</config.location>
+            <log.location>${basedir}/src/main/config//qa/log4j.properties</log.location>
+            <db.url>jdbc:mysql://10.0.1.51/engine</db.url>
+            <db.user>mobit</db.user>
+            <db.pass>123123</db.pass>
+
+        </properties>
+
+    </profile>
+
+
+
+    <profile>
+        <id>qa3</id>
+        <properties>
+            <config.location>${basedir}/src/main/config/qa/syslog_conf..properties</config.location>
+            <log.location>${basedir}/src/main/config//qa/log4j.properties</log.location>
+            <db.url>jdbc:mysql://10.0.2.51/engine</db.url>
+            <db.user>mobit</db.user>
+            <db.pass>123123</db.pass>
+
+        </properties>
+
+    </profile>
+
+        <!-- PROD -->
+        <profile>
+            <id>prod</id>
+            <properties>
+                <config.location>${basedir}/src/main/config/prod/syslog_conf.properties</config.location>
+
+                <log.location>${basedir}/src/main/config/prod/log4j.properties</log.location>
+                <db.url>jdbc:mysql://10.200.10.1/engine</db.url>
+                <db.user>mobit</db.user>
+                <db.pass>123123</db.pass>
+            </properties>
+
+        </profile>
+
+
+
+
+
+        <!-- ams look a alike -->
+        <profile>
+            <id>like</id>
+            <properties>
+                <config.location>${basedir}/src/main/config/like/syslog_conf.properties</config.location>
+
+                <log.location>${basedir}/src/main/config/like/log4j.properties</log.location>
+                <db.url>jdbc:mysql://10.200.50.32/engine</db.url>
+                <db.user>mobit</db.user>
+                <db.pass>123123</db.pass>
+            </properties>
+
+        </profile>
+
+
+
+
+    </profiles>
+
+
   <build>
     <plugins>
+
+        <plugin>
+            <artifactId>maven-antrun-plugin</artifactId>
+            <version>1.4</version>
+            <executions>
+                <execution>
+                    <!-- do some processing on your resources files -->
+                    <phase>generate-resources</phase>
+                    <configuration>
+                        <tasks>
+                            <!--copy file="${log.location}" todir="${preassembly.dir}" overwrite="true"/-->
+
+                            <!-- copy the configuration file to be overwritten -->
+                            <copy file="${config.location}" todir="${preassembly.dir}" overwrite="true"/>
+                        </tasks>
+                    </configuration>
+                    <goals>
+                        <goal>run</goal>
+                    </goals>
+                </execution>
+            </executions>
+        </plugin>
+
 
       <!-- The vert.x Maven plugin -->
       <plugin>

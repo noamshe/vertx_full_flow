@@ -1,7 +1,7 @@
 {
 
   // Java verticle
-  "main":"com.mycompany.Bidder",
+  "main":"com.matomy.rtb.Bidder",
 
   // In this example we also provide various other versions of the main verticle, you can uncomment this and
   // play around:
